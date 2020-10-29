@@ -7,11 +7,33 @@
 
 import os, json
 from flask import Flask, request, jsonify, make_response, abort
+from database import db, User, Course
+
+DEBUG=True
 
 #use this if linking to a reaact app on the same server
 #app = Flask(__name__, static_folder='./build', static_url_path='/')
 app = Flask(__name__)
-DEBUG=True
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL') or \
+        'sqlite:///' + os.path.join(os.path.dirname(__file__),'app.db')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db.init_app(app)
+
+with app.app_context():
+    # Resetting database for now since format changes are expected
+    db.drop_all()
+    # Mockup of database
+    db.create_all()
+    bob = User(username='bob',first_name="Robert")
+    cmpsc148 = Course(course_name='cmpsc148')
+    bob.courses.append(cmpsc148)
+    db.session.add(bob)
+    db.session.commit()
+    print('Reset database')
+
+from api import api_v1
+app.register_blueprint(api_v1,url_prefix='/api/v1/')
 
 ### CORS section
 @app.after_request
@@ -39,41 +61,6 @@ def after_request_func(response):
 '''
 Note that flask automatically redirects routes without a final slash (/) to one with a final slash (e.g. /getmsg redirects to /getmsg/). Curl does not handle redirects but instead prints the updated url. The browser handles redirects (i.e. takes them). You should always code your routes with both a start/end slash.
 '''
-@app.route('/api/v1/users/',methods=['GET'])
-def getusers():
-    response = {}
-    response["users"] = [{"id":"bob","name":"Robert"}]
-    status = 200
-
-    # Return the response in json format with status code
-    return jsonify(response), status
-
-@app.route('/api/v1/users/<userid>/courses/',methods=['GET'])
-def getcourses(userid):
-    if userid != "bob":
-        abort(404, description="User not found")
-    response = {}
-    response["courses"] = [{"id":"cmpsc148","name":"CMPSC 148"}]
-    status = 200
-
-    # Return the response in json format with status code
-    return jsonify(response), status 
-
-@app.route('/api/v1/users/<userid>/courses/<courseid>/links/',methods=['GET'])
-def getcourselinks(userid,courseid):
-    if userid != "bob":
-        abort(404, description="User not found")
-    if courseid != "cmpsc148":
-        abort(404, description="Course not found")
-
-    response = {}
-    response["links"]=[{"text":"Example","url":"http://www.example.com"}]
-    status = 200
-
-    # Return the response in json format with status code
-    return jsonify(response), status 
-
-# Provided stub continues here
 @app.route('/api/getmsg/', methods=['GET'])
 def respond():
     # Retrieve the msg from url parameter of GET request 
