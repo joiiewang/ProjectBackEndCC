@@ -25,11 +25,6 @@ with app.app_context():
     db.drop_all()
     # Mockup of database
     db.create_all()
-    bob = User(username='bob',first_name="Robert")
-    cmpsc148 = Course(course_name='cmpsc148')
-    bob.courses.append(cmpsc148)
-    db.session.add(bob)
-    db.session.commit()
     print('Reset database')
 
 from api import api_v1
