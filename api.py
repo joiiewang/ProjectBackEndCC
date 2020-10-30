@@ -1,7 +1,7 @@
 import os, json
 from flask import Flask, request, jsonify, make_response, abort
 from flask.blueprints import Blueprint
-from database import db, User, Course
+from database import db, User, Course, Link
 
 api_v1 = Blueprint('api_v1',__name__)
 
@@ -70,7 +70,27 @@ def get_course_links(username,course_id):
         abort(404)
 
     response = {}
-    response["links"]=[{"text":"Example","url":"http://www.example.com"}]
+    response["links"]=[{"text":link.text,"url":link.url} for link in course.links]
     status = 200
+    return jsonify(response), status 
+
+@api_v1.route('/users/<username>/courses/<course_id>/links/',methods=['POST'])
+def add_course_link(username,course_id):
+    user = User.query.filter_by(username=username).first()
+    if user is None:
+        abort(404)
+    course = user.courses.filter_by(id=course_id).first()
+    if course is None:
+        abort(404)
+    if not request.json or not 'url' in request.json:
+        abort(400)
+    link = Link(url=request.json['url'],text=request.json.get('text',request.json['url']),user_id=user.id,course_id=course.id)
+    course.links.append(link)
+    db.session.add(link)
+    db.session.commit()
+
+    response = {}
+    response["links"]={"text":link.text,"url":link.url}
+    status = 201
     return jsonify(response), status 
 
