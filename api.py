@@ -5,16 +5,15 @@ from database import db, User, Course, Link
 
 api_v1 = Blueprint('api_v1',__name__)
 
-@api_v1.errorhandler(404)
-def not_found(error):
-    return make_response(jsonify({'error':'Not found'}), 404)
+#@api_v1.errorhandler(404)
+#def not_found(error):
+#    return make_response(jsonify({'error':'Not found'}), 404)
 
 '''Routes should always have start/end slash'''
 
 @api_v1.route('/users/',methods=['GET'])
 def get_users():
-    response = {}
-    response["users"] = [user.to_dict() for user in User.query.all()]
+    response = [user.to_dict() for user in User.query.all()]
     status = 200
     return jsonify(response), status
 
@@ -26,8 +25,7 @@ def create_user():
     db.session.add(user)
     db.session.commit()
 
-    response = {}
-    response["user"] = user.to_dict()
+    response = user.to_dict()
     status = 201
     return jsonify(response), status
 
@@ -38,8 +36,7 @@ def get_courses(username):
     user = User.query.filter_by(username=username).first()
     if user is None:
         abort(404)
-    response = {}
-    response["courses"] = [course.to_dict() for course in user.courses]
+    response = [course.to_dict() for course in user.courses]
     status = 200
     return jsonify(response), status 
 
@@ -48,17 +45,29 @@ def create_course(username):
     user = User.query.filter_by(username=username).first()
     if user is None:
         abort(404)
-    if not request.json or not 'course_name' in request.json:
+    if not request.json or not 'name' in request.json:
         abort(400)
-    course = Course(course_name=request.json['course_name'],user_id=user.id)
+    course = Course(name=request.json['name'],user_id=user.id)
     user.courses.append(course)    
     db.session.add(course)
     db.session.commit()
 
-    response = {}
-    response["courses"] = course.to_dict()
+    response = course.to_dict()
     status = 201
     return jsonify(response), status
+
+@api_v1.route('/users/<username>/courses/<course_id>/',methods=['GET'])
+def get_course(username,course_id):
+    user = User.query.filter_by(username=username).first()
+    if user is None:
+        abort(404)
+    course = user.courses.filter_by(id=course_id).first()
+    if course is None:
+        abort(404)
+
+    response = course.to_dict_long()
+    status = 200
+    return jsonify(response), status 
 
 @api_v1.route('/users/<username>/courses/<course_id>/links/',methods=['GET'])
 def get_course_links(username,course_id):
@@ -69,8 +78,7 @@ def get_course_links(username,course_id):
     if course is None:
         abort(404)
 
-    response = {}
-    response["links"]=[link.to_dict() for link in course.links]
+    response = [link.to_dict() for link in course.links]
     status = 200
     return jsonify(response), status 
 

@@ -13,13 +13,15 @@ class User(db.Model):
 
 class Course(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    course_name = db.Column(db.String(64), index=True)
+    name = db.Column(db.String(64), index=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     links = db.relationship('Link',backref='course',lazy='dynamic')
     def __repr__(self):
-        return f'<Course {self.course_name}>'
+        return f'<Course {self.name}>'
     def to_dict(self):
-        return {"id":self.id,"course_name":self.course_name}
+        return {"id":self.id,"name":self.name}
+    def to_dict_long(self):
+        return {"id":self.id,"name":self.name,"links":[link.to_dict() for link in self.links]}
 
 class Link(db.Model):
     id = db.Column(db.Integer, primary_key=True)
