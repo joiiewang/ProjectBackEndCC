@@ -2,6 +2,7 @@ import os, json
 from flask import Flask, request, jsonify, make_response, abort
 from flask.blueprints import Blueprint
 from database import db, User, Course, Link
+from sqlalchemy.exc import SQLAlchemyError
 
 api_v1 = Blueprint('api_v1',__name__)
 
@@ -22,9 +23,11 @@ def create_user():
     if not request.json or not 'username' in request.json:
         abort(400)
     user = User(username=request.json['username'],first_name=request.json.get('first_name',''))
-    db.session.add(user)
-    db.session.commit()
-
+    try:
+        db.session.add(user)
+        db.session.commit()
+    except SQLAlchemyError as e:
+        abort(422)
     response = user.to_dict()
     status = 201
     return jsonify(response), status
@@ -47,11 +50,14 @@ def create_course(username):
         abort(404)
     if not request.json or not 'name' in request.json:
         abort(400)
-    course = Course(name=request.json['name'],user_id=user.id)
-    user.courses.append(course)    
-    db.session.add(course)
-    db.session.commit()
-
+    try:
+        course = Course(name=request.json['name'],user_id=user.id)
+        user.courses.append(course)    
+        db.session.add(course)
+        db.session.commit()
+    except SQLAlchemyError as e:
+        abort(422)
+    
     response = course.to_dict()
     status = 201
     return jsonify(response), status
@@ -92,12 +98,15 @@ def add_course_link(username,course_id):
         abort(404)
     if not request.json or not 'url' in request.json:
         abort(400)
-    url = request.json['url']
-    text = request.json.get('text',url)
-    link = Link(url=url,text=text,user_id=user.id,course_id=course.id)
-    course.links.append(link)
-    db.session.add(link)
-    db.session.commit()
+    try:
+        url = request.json['url']
+        text = request.json.get('text',url)
+        link = Link(url=url,text=text,user_id=user.id,course_id=course.id)
+        course.links.append(link)
+        db.session.add(link)
+        db.session.commit()
+    except SQLAlchemyError as e:
+        abort(422)
 
     response = {}
     response["links"] = link.to_dict()
