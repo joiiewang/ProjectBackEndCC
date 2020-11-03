@@ -14,7 +14,7 @@ def not_found(error):
 @api_v1.route('/users/',methods=['GET'])
 def get_users():
     response = {}
-    response["users"] = [{"id":user.id,"username":user.username,"first_name":user.first_name} for user in User.query.all()]
+    response["users"] = [user.to_dict() for user in User.query.all()]
     status = 200
     return jsonify(response), status
 
@@ -27,7 +27,7 @@ def create_user():
     db.session.commit()
 
     response = {}
-    response["user"] = {"id":user.id,"username":user.username,"first_name":user.first_name}
+    response["user"] = user.to_dict()
     status = 201
     return jsonify(response), status
 
@@ -39,7 +39,7 @@ def get_courses(username):
     if user is None:
         abort(404)
     response = {}
-    response["courses"] = [{"id":course.id,"course_name":course.course_name} for course in user.courses]
+    response["courses"] = [course.to_dict() for course in user.courses]
     status = 200
     return jsonify(response), status 
 
@@ -56,7 +56,7 @@ def create_course(username):
     db.session.commit()
 
     response = {}
-    response["courses"] = {"id":course.id,"course_name":course.course_name}
+    response["courses"] = course.to_dict()
     status = 201
     return jsonify(response), status
 
@@ -70,7 +70,7 @@ def get_course_links(username,course_id):
         abort(404)
 
     response = {}
-    response["links"]=[{"text":link.text,"url":link.url} for link in course.links]
+    response["links"]=[link.to_dict() for link in course.links]
     status = 200
     return jsonify(response), status 
 
@@ -84,13 +84,15 @@ def add_course_link(username,course_id):
         abort(404)
     if not request.json or not 'url' in request.json:
         abort(400)
-    link = Link(url=request.json['url'],text=request.json.get('text',request.json['url']),user_id=user.id,course_id=course.id)
+    url = request.json['url']
+    text = request.json.get('text',url)
+    link = Link(url=url,text=text,user_id=user.id,course_id=course.id)
     course.links.append(link)
     db.session.add(link)
     db.session.commit()
 
     response = {}
-    response["links"]={"text":link.text,"url":link.url}
+    response["links"] = link.to_dict()
     status = 201
     return jsonify(response), status 
 
