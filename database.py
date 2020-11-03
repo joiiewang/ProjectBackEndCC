@@ -21,7 +21,8 @@ class Course(db.Model):
     def to_dict(self):
         return {"id":self.id,"name":self.name}
     def to_dict_long(self):
-        return {"id":self.id,"name":self.name,"links":[link.to_dict() for link in self.links]}
+        return {"id":self.id,"name":self.name,"links":[link.to_dict() for link in self.links],
+                "todos":[],"notes":[]}
 
 class Link(db.Model):
     id = db.Column(db.Integer, primary_key=True)
