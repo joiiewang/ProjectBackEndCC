@@ -6,6 +6,7 @@ class User(db.Model):
     username = db.Column(db.String(64), index=True, unique=True, nullable=False)
     first_name = db.Column(db.String(64), index=True, nullable=False)
     courses = db.relationship('Course',backref='student',lazy='dynamic')
+    points = db.Column(db.Integer, index=True, nullable=False)
     def __repr__(self):
         return f'<User {self.username}>'
     def to_dict(self):

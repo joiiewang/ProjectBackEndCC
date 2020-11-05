@@ -22,7 +22,7 @@ def get_users():
 def create_user():
     if not request.json or not 'username' in request.json:
         abort(400)
-    user = User(username=request.json['username'],first_name=request.json.get('first_name',''))
+    user = User(username=request.json['username'],first_name=request.json.get('first_name',''),points=0)
     try:
         db.session.add(user)
         db.session.commit()
