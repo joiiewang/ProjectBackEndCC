@@ -3,12 +3,21 @@ from flask import Flask, request, jsonify, make_response, abort
 from flask.blueprints import Blueprint
 from database import db, User, Course, Link
 from sqlalchemy.exc import SQLAlchemyError
+from flask_httpauth import HTTPBasicAuth
+auth = HTTPBasicAuth()
 
 api_v1 = Blueprint('api_v1',__name__)
 
 #@api_v1.errorhandler(404)
 #def not_found(error):
 #    return make_response(jsonify({'error':'Not found'}), 404)
+
+@auth.verify_password
+def verify_password(username, password):
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return False
+    return password == "password123"
 
 '''Routes should always have start/end slash'''
 
@@ -33,8 +42,8 @@ def create_user():
     return jsonify(response), status
 
 
-
 @api_v1.route('/users/<username>/courses/',methods=['GET'])
+@auth.login_required
 def get_courses(username):
     user = User.query.filter_by(username=username).first()
     if user is None:
@@ -44,6 +53,7 @@ def get_courses(username):
     return jsonify(response), status 
 
 @api_v1.route('/users/<username>/courses/',methods=['POST'])
+@auth.login_required
 def create_course(username):
     user = User.query.filter_by(username=username).first()
     if user is None:
@@ -63,6 +73,7 @@ def create_course(username):
     return jsonify(response), status
 
 @api_v1.route('/users/<username>/courses/<course_id>/',methods=['GET'])
+@auth.login_required
 def get_course(username,course_id):
     user = User.query.filter_by(username=username).first()
     if user is None:
@@ -76,6 +87,7 @@ def get_course(username,course_id):
     return jsonify(response), status 
 
 @api_v1.route('/users/<username>/courses/<course_id>/links/',methods=['GET'])
+@auth.login_required
 def get_course_links(username,course_id):
     user = User.query.filter_by(username=username).first()
     if user is None:
@@ -89,6 +101,7 @@ def get_course_links(username,course_id):
     return jsonify(response), status 
 
 @api_v1.route('/users/<username>/courses/<course_id>/links/',methods=['POST'])
+@auth.login_required
 def add_course_link(username,course_id):
     user = User.query.filter_by(username=username).first()
     if user is None:
