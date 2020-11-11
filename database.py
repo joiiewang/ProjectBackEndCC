@@ -4,6 +4,7 @@ db = SQLAlchemy()
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), index=True, unique=True, nullable=False)
+    password_hash = db.Column(db.String(128), nullable=False)
     first_name = db.Column(db.String(64), index=True, nullable=False)
     courses = db.relationship('Course',backref='student',lazy='dynamic')
     points = db.Column(db.Integer, index=True, nullable=False)

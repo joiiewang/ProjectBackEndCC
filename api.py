@@ -4,6 +4,8 @@ from flask.blueprints import Blueprint
 from database import db, User, Course, Link
 from sqlalchemy.exc import SQLAlchemyError
 from flask_httpauth import HTTPBasicAuth
+from passlib.apps import custom_app_context as pwd_context
+
 auth = HTTPBasicAuth()
 
 api_v1 = Blueprint('api_v1',__name__)
@@ -15,9 +17,7 @@ api_v1 = Blueprint('api_v1',__name__)
 @auth.verify_password
 def verify_password(username, password):
     user = User.query.filter_by(username=username).first()
-    if not user:
-        return False
-    return password == "password123"
+    return user and pwd_context.verify(password, user.password_hash)
 
 '''Routes should always have start/end slash'''
 
@@ -29,9 +29,12 @@ def get_users():
 
 @api_v1.route('/users/',methods=['POST'])
 def create_user():
-    if not request.json or not 'username' in request.json:
+    username = request.json.get('username')
+    password = request.json.get('password')
+    if username is None or password is None:
         abort(400)
-    user = User(username=request.json['username'],first_name=request.json.get('first_name',''),points=0)
+
+    user = User(username=username,first_name=request.json.get('first_name',''),points=0,password_hash=pwd_context.encrypt(password))
     try:
         db.session.add(user)
         db.session.commit()
