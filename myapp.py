@@ -35,7 +35,8 @@ app.register_blueprint(api_v1,url_prefix='/api/v1/')
 def after_request_func(response):
     if DEBUG:
         print("in after_request")
-    origin = request.headers.get('Origin')
+    #origin = request.headers.get('Origin')
+    origin = '*'
     if request.method == 'OPTIONS':
         response = make_response()
         response.headers.add('Access-Control-Allow-Credentials', 'true')
