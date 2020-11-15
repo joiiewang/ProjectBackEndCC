@@ -27,8 +27,15 @@ with app.app_context():
     db.create_all()
     print('Reset database')
 
+#deprecated
 from api import api_v1
 app.register_blueprint(api_v1,url_prefix='/api/v1/')
+#---
+
+from api2 import initialize_routes
+from flask_restful import Api
+api = Api(app)
+initialize_routes(api)
 
 ### CORS section
 @app.after_request
