@@ -95,6 +95,19 @@ class CourseAPI(Resource):
             abort(404)
         return course.to_dict()
 
+    def delete(self,username,courseid):
+        if username != auth.current_user().username:
+            abort(401)
+        user = auth.current_user()
+        course = user.courses.filter_by(id=courseid).first()
+        if not course:
+            abort(404)
+        try:
+            db.session.delete(course)
+            db.session.commit()
+        except SQLAlchemyError as e:
+            abort(422)
+
 def initialize_routes(api):
     api.add_resource(UserListAPI,'/api/v2/users/',endpoint='users')
     api.add_resource(UserAPI,'/api/v2/users/<string:username>/',endpoint='user')
