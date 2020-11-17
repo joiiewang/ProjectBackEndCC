@@ -16,18 +16,19 @@ auth = HTTPBasicAuth()
 @auth.verify_password
 def verify_password(username, password):
     user = User.query.filter_by(username=username).first()
-    return user and pwd_context.verify(password, user.password_hash)
+    if user and pwd_context.verify(password, user.password_hash):
+        return user
 
 '''Routes should always have start/end slash'''
 
-class UserAPI(Resource):
+class UserListAPI(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
         self.reqparse.add_argument('username',type=str,required=True,
                 help='No username provided',location='json')
         self.reqparse.add_argument('password',type=str,required=True,
                 help='No password provided',location='json')
-        super(UserAPI,self).__init__()
+        super(UserListAPI,self).__init__()
 
     def get(self):
         return [user.to_dict() for user in User.query.all()]
@@ -43,6 +44,22 @@ class UserAPI(Resource):
             abort(422)
         return user.to_dict()
 
+class UserAPI(Resource):
+    def __init__(self):
+        self.reqparse = reqparse.RequestParser()
+        self.reqparse.add_argument('username',type=str,required=True,
+                help='No username provided',location='json')
+        self.reqparse.add_argument('password',type=str,required=True,
+                help='No password provided',location='json')
+        super(UserAPI,self).__init__()
+
+    @auth.login_required
+    def get(self,username):
+        if username != auth.current_user().username:
+            abort(401)
+        return auth.current_user().to_dict()
+
 def initialize_routes(api):
-    api.add_resource(UserAPI,'/api/v2/users/',endpoint='users')
+    api.add_resource(UserListAPI,'/api/v2/users/',endpoint='users')
+    api.add_resource(UserAPI,'/api/v2/users/<string:username>/',endpoint='user')
 
