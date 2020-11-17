@@ -45,35 +45,31 @@ class UserListAPI(Resource):
         return user.to_dict()
 
 class UserAPI(Resource):
+    decorators = [auth.login_required]
     def __init__(self):
-        self.reqparse = reqparse.RequestParser()
-        self.reqparse.add_argument('username',type=str,required=True,
-                help='No username provided',location='json')
-        self.reqparse.add_argument('password',type=str,required=True,
-                help='No password provided',location='json')
         super(UserAPI,self).__init__()
 
-    @auth.login_required
     def get(self,username):
         if username != auth.current_user().username:
             abort(401)
         return auth.current_user().to_dict()
 
 class CourseListAPI(Resource):
+    decorators = [auth.login_required]
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
         self.reqparse.add_argument('name',type=str,required=True,
                 help='No course name provided',location='json')
         super(CourseListAPI,self).__init__()
 
-    @auth.login_required
     def get(self,username):
         if username != auth.current_user().username:
             abort(401)
         return [course.to_dict() for course in auth.current_user().courses]
 
-    @auth.login_required
     def post(self,username):
+        if username != auth.current_user().username:
+            abort(401)
         args = self.reqparse.parse_args()
         try:
             user = auth.current_user()
@@ -85,12 +81,24 @@ class CourseListAPI(Resource):
         except SQLAlchemyError as e:
             abort(422)
 
+class CourseAPI(Resource):
+    decorators = [auth.login_required]
+    def __init__(self):
+        super(CourseAPI,self).__init__()
 
-
+    def get(self,username,courseid):
+        if username != auth.current_user().username:
+            abort(401)
+        user = auth.current_user()
+        course = user.courses.filter_by(id=courseid).first()
+        if not course:
+            abort(404)
+        return course.to_dict()
 
 def initialize_routes(api):
     api.add_resource(UserListAPI,'/api/v2/users/',endpoint='users')
     api.add_resource(UserAPI,'/api/v2/users/<string:username>/',endpoint='user')
     api.add_resource(CourseListAPI,'/api/v2/users/<string:username>/courses/',endpoint='courses')
+    api.add_resource(CourseAPI,'/api/v2/users/<string:username>/courses/<int:courseid>/',endpoint='course')
 
 
