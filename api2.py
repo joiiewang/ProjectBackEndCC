@@ -59,7 +59,38 @@ class UserAPI(Resource):
             abort(401)
         return auth.current_user().to_dict()
 
+class CourseListAPI(Resource):
+    def __init__(self):
+        self.reqparse = reqparse.RequestParser()
+        self.reqparse.add_argument('name',type=str,required=True,
+                help='No course name provided',location='json')
+        super(CourseListAPI,self).__init__()
+
+    @auth.login_required
+    def get(self,username):
+        if username != auth.current_user().username:
+            abort(401)
+        return [course.to_dict() for course in auth.current_user().courses]
+
+    @auth.login_required
+    def post(self,username):
+        args = self.reqparse.parse_args()
+        try:
+            user = auth.current_user()
+            course = Course(name=args['name'],user_id=user.id)
+            user.courses.append(course)    
+            db.session.add(course)
+            db.session.commit()
+            return course.to_dict()
+        except SQLAlchemyError as e:
+            abort(422)
+
+
+
+
 def initialize_routes(api):
     api.add_resource(UserListAPI,'/api/v2/users/',endpoint='users')
     api.add_resource(UserAPI,'/api/v2/users/<string:username>/',endpoint='user')
+    api.add_resource(CourseListAPI,'/api/v2/users/<string:username>/courses/',endpoint='courses')
+
 
