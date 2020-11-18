@@ -5,14 +5,13 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), index=True, unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
-    first_name = db.Column(db.String(64), index=True, nullable=False)
-    courses = db.relationship('Course',backref='student',lazy='dynamic')
-    links = db.relationship('Link',backref='student',lazy='dynamic')
+    courses = db.relationship('Course',backref='user',lazy='dynamic')
+    links = db.relationship('Link',backref='user',lazy='dynamic')
     points = db.Column(db.Integer, index=True, nullable=False)
     def __repr__(self):
         return f'<User {self.username}>'
     def to_dict(self):
-        return {"id":self.id,"username":self.username,"first_name":self.first_name} 
+        return {"id":self.id,"username":self.username,"points":self.points}
 
 class Course(db.Model):
     id = db.Column(db.Integer, primary_key=True)

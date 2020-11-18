@@ -36,7 +36,7 @@ class UserListAPI(Resource):
     def post(self):
         args = self.reqparse.parse_args()
         user = User(username=args['username'],password_hash=pwd_context.encrypt(args['password']),
-                first_name='',points=0)
+                points=0)
         try:
             db.session.add(user)
             db.session.commit()
@@ -74,7 +74,7 @@ class CourseListAPI(Resource):
         try:
             user = auth.current_user()
             course = Course(name=args['name'],user_id=user.id)
-            user.courses.append(course)    
+            user.courses.append(course)
             db.session.add(course)
             db.session.commit()
             return course.to_dict()

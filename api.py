@@ -34,7 +34,7 @@ def create_user():
     if username is None or password is None:
         abort(400)
 
-    user = User(username=username,first_name=request.json.get('first_name',''),points=0,password_hash=pwd_context.encrypt(password))
+    user = User(username=username,points=0,password_hash=pwd_context.encrypt(password))
     try:
         db.session.add(user)
         db.session.commit()
