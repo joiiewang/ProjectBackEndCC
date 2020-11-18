@@ -116,6 +116,8 @@ class LinkListAPI(Resource):
                 help='No text provided',location='json')
         self.reqparse.add_argument('url',type=str,required=True,
                 help='No url provided',location='json')
+        self.reqparse.add_argument('course_id',type=int,required=False,
+                help='No course id provided',location='json')
         super(LinkListAPI,self).__init__()
 
     def get(self,username):
@@ -129,7 +131,16 @@ class LinkListAPI(Resource):
         args = self.reqparse.parse_args()
         try:
             user = auth.current_user()
-            link = Link(text=args['text'],url=args['url'],user_id=user.id)
+            course_id=args['course_id']
+            print("Course id = ",course_id)
+            if course_id is not None:
+                course = user.courses.filter_by(id=course_id).first()
+                if not course:
+                    abort(422)
+                print("Course found: ",course)
+                link = Link(text=args['text'],url=args['url'],course=course,user_id=user.id)
+            else:
+                link = Link(text=args['text'],url=args['url'],user_id=user.id)
             user.links.append(link)    
             db.session.add(link)
             db.session.commit()
