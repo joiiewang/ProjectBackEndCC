@@ -108,10 +108,68 @@ class CourseAPI(Resource):
         except SQLAlchemyError as e:
             abort(422)
 
+class LinkListAPI(Resource):
+    decorators = [auth.login_required]
+    def __init__(self):
+        self.reqparse = reqparse.RequestParser()
+        self.reqparse.add_argument('text',type=str,required=True,
+                help='No text provided',location='json')
+        self.reqparse.add_argument('url',type=str,required=True,
+                help='No url provided',location='json')
+        super(LinkListAPI,self).__init__()
+
+    def get(self,username):
+        if username != auth.current_user().username:
+            abort(401)
+        return [link.to_dict() for link in auth.current_user().links]
+
+    def post(self,username):
+        if username != auth.current_user().username:
+            abort(401)
+        args = self.reqparse.parse_args()
+        try:
+            user = auth.current_user()
+            link = Link(text=args['text'],url=args['url'],user_id=user.id)
+            user.links.append(link)    
+            db.session.add(link)
+            db.session.commit()
+            return link.to_dict()
+        except SQLAlchemyError as e:
+            abort(422)
+
+class LinkAPI(Resource):
+    decorators = [auth.login_required]
+    def __init__(self):
+        super(LinkAPI,self).__init__()
+
+    def get(self,username,linkid):
+        if username != auth.current_user().username:
+            abort(401)
+        user = auth.current_user()
+        link = user.links.filter_by(id=linkid).first()
+        if not link:
+            abort(404)
+        return link.to_dict()
+
+    def delete(self,username,linkid):
+        if username != auth.current_user().username:
+            abort(401)
+        user = auth.current_user()
+        link = user.links.filter_by(id=linkid).first()
+        if not link:
+            abort(404)
+        try:
+            db.session.delete(link)
+            db.session.commit()
+        except SQLAlchemyError as e:
+            abort(422)
+
 def initialize_routes(api):
     api.add_resource(UserListAPI,'/api/v2/users/',endpoint='users')
     api.add_resource(UserAPI,'/api/v2/users/<string:username>/',endpoint='user')
     api.add_resource(CourseListAPI,'/api/v2/users/<string:username>/courses/',endpoint='courses')
     api.add_resource(CourseAPI,'/api/v2/users/<string:username>/courses/<int:courseid>/',endpoint='course')
+    api.add_resource(LinkListAPI,'/api/v2/users/<string:username>/links/',endpoint='links')
+    api.add_resource(LinkAPI,'/api/v2/users/<string:username>/links/<int:linkid>/',endpoint='link')
 
 
