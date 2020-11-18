@@ -22,9 +22,6 @@ class Course(db.Model):
     def __repr__(self):
         return f'<Course {self.name}>'
     def to_dict(self):
-        return self.to_dict_long()
-        return {"id":self.id,"name":self.name}
-    def to_dict_long(self):
         return {"id":self.id,"name":self.name,"links":[link.to_dict() for link in self.links],
                 "todos":[],"notes":[]}
 

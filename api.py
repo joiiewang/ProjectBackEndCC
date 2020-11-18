@@ -85,7 +85,7 @@ def get_course(username,course_id):
     if course is None:
         abort(404)
 
-    response = course.to_dict_long()
+    response = course.to_dict()
     status = 200
     return jsonify(response), status 
 
