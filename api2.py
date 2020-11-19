@@ -125,7 +125,10 @@ class LinkListAPI(Resource):
             abort(401)
         links = auth.current_user().links
         if 'course_id' in request.args:
-            links = links.filter_by(course_id=request.args['course_id'])
+            if request.args['course_id']=="none":
+                links = links.filter_by(course_id=None)
+            else:
+                links = links.filter_by(course_id=request.args['course_id'])
         return [link.to_dict() for link in links]
 
     def post(self,username):
