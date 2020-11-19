@@ -7,7 +7,8 @@ class User(db.Model):
     password_hash = db.Column(db.String(128), nullable=False)
     courses = db.relationship('Course',backref='user',lazy='dynamic')
     links = db.relationship('Link',backref='user',lazy='dynamic')
-    toDoObjects = db.relationship('ToDoList',backref='course',lazy='dynamic')
+    toDoObjects = db.relationship('ToDoList',backref='user',lazy='dynamic')
+    notes = db.relationship('Note',backref='user',lazy='dynamic')
 
     points = db.Column(db.Integer, index=True, nullable=False)
     def __repr__(self):
@@ -21,12 +22,13 @@ class Course(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     links = db.relationship('Link',backref='course',lazy='dynamic')
     toDoObjects = db.relationship('ToDoList',backref='course',lazy='dynamic')
+    notes = db.relationship('Note',backref='course',lazy='dynamic')
 
     def __repr__(self):
         return f'<Course {self.name}>'
     def to_dict(self):
         return {"id":self.id,"name":self.name,"links":[link.to_dict() for link in self.links],
-                "todos":[todo.to_dict() for todo in self.toDoList],"notes":[]}
+                "todos":[todo.to_dict() for todo in self.toDoList],"notes":[note.to_dict() for note in self.notes]}
 
 class Link(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -49,3 +51,13 @@ class ToDoList(db.Model):
         return f'<ToDoList {self.toDoItem}>'
     def to_dict(self):
         return {"id":self.id,"toDoitem":self.toDoItem,"dueDate":self.dueDate}
+
+class Note(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    text = db.Column(db.String(128), index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    course_id = db.Column(db.Integer, db.ForeignKey('course.id'))
+    def __repr__(self):
+        return f'<Note {self.text}>'
+    def to_dict(self):
+        return {"id":self.id,"text":self.text} 

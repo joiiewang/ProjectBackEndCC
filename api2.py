@@ -255,6 +255,77 @@ class ToDoAPI(Resource):
         except SQLAlchemyError as e:
             abort(422)
 
+class NoteListAPI(Resource):
+    decorators = [auth.login_required]
+    def __init__(self):
+        self.reqparse = reqparse.RequestParser()
+        self.reqparse.add_argument('text',type=str,required=True,
+                help='No text provided',location='json')
+        self.reqparse.add_argument('course_id',type=int,required=False,
+                help='No course id provided',location='json')
+        super(NoteListAPI,self).__init__()
+
+    def get(self,username):
+        if username != auth.current_user().username:
+            abort(401)
+        notes = auth.current_user().notes
+        if 'course_id' in request.args:
+            if request.args['course_id']=="none":
+                notes = notes.filter_by(course_id=None)
+            else:
+                notes = notes.filter_by(course_id=request.args['course_id'])
+        return [note.to_dict() for note in notes]
+
+    def post(self,username):
+        if username != auth.current_user().username:
+            abort(401)
+        args = self.reqparse.parse_args()
+        try:
+            user = auth.current_user()
+            course_id=args['course_id']
+            print("Course id = ",course_id)
+            if course_id is not None:
+                course = user.courses.filter_by(id=course_id).first()
+                if not course:
+                    abort(422)
+                print("Course found: ",course)
+                note = Note(text=args['text'],course=course,user_id=user.id)
+            else:
+                note = Note(text=args['text'],user_id=user.id)
+            user.notes.append(note)    
+            db.session.add(note)
+            db.session.commit()
+            return note.to_dict()
+        except SQLAlchemyError as e:
+            abort(422)
+
+class LinkAPI(Resource):
+    decorators = [auth.login_required]
+    def __init__(self):
+        super(NoteAPI,self).__init__()
+
+    def get(self,username,noteid):
+        if username != auth.current_user().username:
+            abort(401)
+        user = auth.current_user()
+        note = user.notes.filter_by(id=noteid).first()
+        if not note:
+            abort(404)
+        return note.to_dict()
+
+    def delete(self,username,noteid):
+        if username != auth.current_user().username:
+            abort(401)
+        user = auth.current_user()
+        note = user.notes.filter_by(id=noteid).first()
+        if not note:
+            abort(404)
+        try:
+            db.session.delete(note)
+            db.session.commit()
+        except SQLAlchemyError as e:
+            abort(422)
+
 def initialize_routes(api):
     api.add_resource(UserListAPI,'/api/v2/users/',endpoint='users')
     api.add_resource(UserAPI,'/api/v2/users/<string:username>/',endpoint='user')
@@ -262,6 +333,8 @@ def initialize_routes(api):
     api.add_resource(CourseAPI,'/api/v2/users/<string:username>/courses/<int:courseid>/',endpoint='course')
     api.add_resource(LinkListAPI,'/api/v2/users/<string:username>/links/',endpoint='links')
     api.add_resource(LinkAPI,'/api/v2/users/<string:username>/links/<int:linkid>/',endpoint='link')
-    api.add_resource(ToDoListAPI,'/api/v2/users/<string:username>/toDoObjects/', endpoint = 'toDoObjects')
-    api.add_resource(ToDoAPI,'/api/v2/users/<string:username>/todoObjects/<int:todoid>'), endpoint = 'todo')
+    api.add_resource(ToDoListAPI,'/api/v2/users/<string:username>/toDoObjects/',endpoint='toDoObjects')
+    api.add_resource(ToDoAPI,'/api/v2/users/<string:username>/todoObjects/<int:todoid>/',endpoint='todo')
+    api.add_resource(NoteListAPI,'/api/v2/users/<string:username>/notes/',endpoint='notes')
+    api.add_resource(NoteAPI,'/api/v2/users/<string:username>/notes/<int:noteid>/',endpoint='note')
     
