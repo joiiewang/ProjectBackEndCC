@@ -123,7 +123,10 @@ class LinkListAPI(Resource):
     def get(self,username):
         if username != auth.current_user().username:
             abort(401)
-        return [link.to_dict() for link in auth.current_user().links]
+        links = auth.current_user().links
+        if 'course_id' in request.args:
+            links = links.filter_by(course_id=request.args['course_id'])
+        return [link.to_dict() for link in links]
 
     def post(self,username):
         if username != auth.current_user().username:
