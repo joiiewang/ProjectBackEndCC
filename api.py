@@ -129,3 +129,42 @@ def add_course_link(username,course_id):
     status = 201
     return jsonify(response), status 
 
+@api_v1.route('/users/<username>/courses/<course_id>/ToDoList/',methods=['GET'])
+@auth.login_required
+def get_course_ToDoList(username,course_id):
+    user = User.query.filter_by(username=username).first()
+    if user is None:
+        abort(404)
+    course = user.courses.filter_by(id=course_id).first()
+    if course is None:
+        abort(404)
+
+    response = [todo.to_dict() for todo in course.toDoObjects]
+    status = 200
+    return jsonify(response), status
+
+@api_v1.route('/users/<username>/courses/<course_id>/ToDoList/',methods=['POST'])
+@auth.login_required
+def add_course_ToDoList(username,course_id):
+    user = User.query.filter_by(username=username).first()
+    if user is None:
+        abort(404)
+    course = user.courses.filter_by(id=course_id).first()
+    if course is None:
+        abort(404)
+    if not request.json or not 'toDoItem' in request.json:
+        abort(400)
+    try:
+        toDoItem = request.json['toDoItem']
+         = request.json.get('dueDate', toDoItem)
+        todo = ToDoList(toDoItem=toDoItem,dueDate=dueDate,user_id=user.id,course_id=course.id)
+        course.toDoObjects.append(todo)
+        db.session.add(todo)
+        db.session.commit()
+    except SQLAlchemyError as e:
+        abort(422)
+
+    response = {}
+    response["ToDoList"] = todo.to_dict()
+    status = 201
+    return jsonify(response), status 

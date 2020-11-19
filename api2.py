@@ -181,6 +181,80 @@ class LinkAPI(Resource):
         except SQLAlchemyError as e:
             abort(422)
 
+class ToDoListAPI(Resource):
+    decorators = [auth.login_required]
+    def __init__(self):
+        self.reqparse = reqparse.RequestParser()
+        self.reqparse.add_argument('toDoItem',type=str,required=True,
+                help='No toDoItem provided',location='json')
+        self.reqparse.add_argument('dueDate',type=str,required=True,
+                help='No dueDate provided',location='json')
+        self.reqparse.add_argument('course_id',type=int,required=False,
+                help='No course id provided',location='json')
+        super(ToDoListAPI,self).__init__()
+
+    def get(self,username):
+        if username != auth.current_user().username:
+            abort(401)
+        toDoObjects = auth.current_user().toDoObjects
+        if 'course_id' in request.args:
+            if request.args['course_id']=="none":
+                toDoObjects = links.filter_by(course_id=None)
+            else:
+                toDoObjects = toDoObjects.filter_by(course_id=request.args['course_id'])
+        return [todo.to_dict() for todo in toDoObjects]
+
+    def post(self,username):
+        if username != auth.current_user().username:
+            abort(401)
+        args = self.reqparse.parse_args()
+        try:
+            user = auth.current_user()
+            course_id=args['course_id']
+            print("Course id = ",course_id)
+            if course_id is not None:
+                course = user.courses.filter_by(id=course_id).first()
+                if not course:
+                    abort(422)
+                print("Course found: ",course)
+                todo = ToDo(toDoItem=args['toDoItem'],dueDate=args['dueDate'],course=course,user_id=user.id)
+            else:
+                todo = ToDo(toDoItem=args['toDoItem'],dueDate=args['dueDate'],user_id=user.id)
+            user.toDoObjects.append(todo)    
+            db.session.add(todo)
+            db.session.commit()
+            return todo.to_dict()
+        except SQLAlchemyError as e:
+            abort(422)
+    
+
+class ToDoAPI(Resource):
+    decorators = [auth.login_required]
+    def __init__(self):
+        super(ToDoAPI,self).__init__()
+
+    def get(self,username,todoid):
+        if username != auth.current_user().username:
+            abort(401)
+        user = auth.current_user()
+        todo = user.toDoObjects.filter_by(id=todoid).first()
+        if not todo:
+            abort(404)
+        return todo.to_dict()
+
+    def delete(self,username,todoid):
+        if username != auth.current_user().username:
+            abort(401)
+        user = auth.current_user()
+        todo = user.toDoObjects.filter_by(id=todoid).first()
+        if not todo:
+            abort(404)
+        try:
+            db.session.delete(todo)
+            db.session.commit()
+        except SQLAlchemyError as e:
+            abort(422)
+
 def initialize_routes(api):
     api.add_resource(UserListAPI,'/api/v2/users/',endpoint='users')
     api.add_resource(UserAPI,'/api/v2/users/<string:username>/',endpoint='user')
@@ -188,5 +262,6 @@ def initialize_routes(api):
     api.add_resource(CourseAPI,'/api/v2/users/<string:username>/courses/<int:courseid>/',endpoint='course')
     api.add_resource(LinkListAPI,'/api/v2/users/<string:username>/links/',endpoint='links')
     api.add_resource(LinkAPI,'/api/v2/users/<string:username>/links/<int:linkid>/',endpoint='link')
-
-
+    api.add_resource(ToDoListAPI,'/api/v2/users/<string:username>/toDoObjects/', endpoint = 'toDoObjects')
+    api.add_resource(ToDoAPI,'/api/v2/users/<string:username>/todoObjects/<int:todoid>'), endpoint = 'todo')
+    
