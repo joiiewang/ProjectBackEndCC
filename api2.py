@@ -199,7 +199,7 @@ class ToDoListAPI(Resource):
         toDoObjects = auth.current_user().toDoObjects
         if 'course_id' in request.args:
             if request.args['course_id']=="none":
-                toDoObjects = links.filter_by(course_id=None)
+                toDoObjects = toDoObjects.filter_by(course_id=None)
             else:
                 toDoObjects = toDoObjects.filter_by(course_id=request.args['course_id'])
         return [todo.to_dict() for todo in toDoObjects]
