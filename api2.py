@@ -299,7 +299,7 @@ class NoteListAPI(Resource):
         except SQLAlchemyError as e:
             abort(422)
 
-class LinkAPI(Resource):
+class NoteAPI(Resource):
     decorators = [auth.login_required]
     def __init__(self):
         super(NoteAPI,self).__init__()

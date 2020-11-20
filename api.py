@@ -156,7 +156,7 @@ def add_course_ToDoList(username,course_id):
         abort(400)
     try:
         toDoItem = request.json['toDoItem']
-         = request.json.get('dueDate', toDoItem)
+        dueDate = request.json.get('dueDate', toDoItem)
         todo = ToDoList(toDoItem=toDoItem,dueDate=dueDate,user_id=user.id,course_id=course.id)
         course.toDoObjects.append(todo)
         db.session.add(todo)
