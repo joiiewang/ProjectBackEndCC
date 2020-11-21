@@ -1,7 +1,7 @@
 import os, json
 from flask import Flask, request, jsonify, make_response, abort
 from flask_restful import Api, Resource, reqparse, fields, marshal
-from database import db, User, Course, Link
+from database import db, User, Course, Link, ToDoList, Note
 from sqlalchemy.exc import SQLAlchemyError
 from flask_httpauth import HTTPBasicAuth
 from passlib.apps import custom_app_context as pwd_context
