@@ -103,6 +103,12 @@ class CourseAPI(Resource):
         if not course:
             abort(404)
         try:
+            for link in course.links:
+	            db.session.delete(link)
+            for todo in course.toDoObjects:
+	            db.session.delete(todo)
+            for note in course.notes:
+	            db.session.delete(note)
             db.session.delete(course)
             db.session.commit()
         except SQLAlchemyError as e:
