@@ -105,8 +105,8 @@ class CourseAPI(Resource):
         try:
             for link in course.links:
 	            db.session.delete(link)
-            for todo in course.toDoObjects:
-	            db.session.delete(todo)
+            for toDoItem in course.todos:
+	            db.session.delete(toDoItem)
             for note in course.notes:
 	            db.session.delete(note)
             db.session.delete(course)
