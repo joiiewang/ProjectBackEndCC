@@ -185,8 +185,8 @@ class ToDoListAPI(Resource):
     decorators = [auth.login_required]
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
-        self.reqparse.add_argument('toDoItem',type=str,required=True,
-                help='No toDoItem provided',location='json')
+        self.reqparse.add_argument('text',type=str,required=True,
+                help='No text provided',location='json')
         self.reqparse.add_argument('dueDate',type=str,required=True,
                 help='No dueDate provided',location='json')
         self.reqparse.add_argument('course_id',type=int,required=False,
@@ -196,13 +196,13 @@ class ToDoListAPI(Resource):
     def get(self,username):
         if username != auth.current_user().username:
             abort(401)
-        toDoObjects = auth.current_user().toDoObjects
+        todos = auth.current_user().todos
         if 'course_id' in request.args:
             if request.args['course_id']=="none":
-                toDoObjects = toDoObjects.filter_by(course_id=None)
+                todos = todos.filter_by(course_id=None)
             else:
-                toDoObjects = toDoObjects.filter_by(course_id=request.args['course_id'])
-        return [todo.to_dict() for todo in toDoObjects]
+                todos = todos.filter_by(course_id=request.args['course_id'])
+        return [toDoItem.to_dict() for toDoItem in todos]
 
     def post(self,username):
         if username != auth.current_user().username:
@@ -217,40 +217,40 @@ class ToDoListAPI(Resource):
                 if not course:
                     abort(422)
                 print("Course found: ",course)
-                todo = ToDo(toDoItem=args['toDoItem'],dueDate=args['dueDate'],course=course,user_id=user.id)
+                toDoItem = ToDoItem(text=args['text'],dueDate=args['dueDate'],course=course,user_id=user.id)
             else:
-                todo = ToDo(toDoItem=args['toDoItem'],dueDate=args['dueDate'],user_id=user.id)
-            user.toDoObjects.append(todo)    
-            db.session.add(todo)
+                toDoItem = ToDoItem(text=args['text'],dueDate=args['dueDate'],user_id=user.id)
+            user.todos.append(toDoItem)    
+            db.session.add(toDoItem)
             db.session.commit()
-            return todo.to_dict()
+            return toDoItem.to_dict()
         except SQLAlchemyError as e:
             abort(422)
     
 
-class ToDoAPI(Resource):
+class ToDoItemAPI(Resource):
     decorators = [auth.login_required]
     def __init__(self):
-        super(ToDoAPI,self).__init__()
+        super(ToDoItemAPI,self).__init__()
 
-    def get(self,username,todoid):
+    def get(self,username,toDoItemid):
         if username != auth.current_user().username:
             abort(401)
         user = auth.current_user()
-        todo = user.toDoObjects.filter_by(id=todoid).first()
-        if not todo:
+        toDoItem = user.todos.filter_by(id=toDoItemid).first()
+        if not toDoItem:
             abort(404)
-        return todo.to_dict()
+        return toDoItem.to_dict()
 
-    def delete(self,username,todoid):
+    def delete(self,username,toDoItemid):
         if username != auth.current_user().username:
             abort(401)
         user = auth.current_user()
-        todo = user.toDoObjects.filter_by(id=todoid).first()
-        if not todo:
+        toDoItem = user.todos.filter_by(id=toDoItemid).first()
+        if not toDoItem:
             abort(404)
         try:
-            db.session.delete(todo)
+            db.session.delete(toDoItem)
             db.session.commit()
         except SQLAlchemyError as e:
             abort(422)
@@ -333,8 +333,8 @@ def initialize_routes(api):
     api.add_resource(CourseAPI,'/api/v2/users/<string:username>/courses/<int:courseid>/',endpoint='course')
     api.add_resource(LinkListAPI,'/api/v2/users/<string:username>/links/',endpoint='links')
     api.add_resource(LinkAPI,'/api/v2/users/<string:username>/links/<int:linkid>/',endpoint='link')
-    api.add_resource(ToDoListAPI,'/api/v2/users/<string:username>/toDoObjects/',endpoint='toDoObjects')
-    api.add_resource(ToDoAPI,'/api/v2/users/<string:username>/todoObjects/<int:todoid>/',endpoint='todo')
+    api.add_resource(ToDoListAPI,'/api/v2/users/<string:username>/todos/',endpoint='todos')
+    api.add_resource(ToDoItemAPI,'/api/v2/users/<string:username>/todos/<int:toDoItemid>/',endpoint='toDoItem')
     api.add_resource(NoteListAPI,'/api/v2/users/<string:username>/notes/',endpoint='notes')
     api.add_resource(NoteAPI,'/api/v2/users/<string:username>/notes/<int:noteid>/',endpoint='note')
     
