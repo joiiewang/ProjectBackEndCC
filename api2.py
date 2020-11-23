@@ -223,9 +223,9 @@ class ToDoListAPI(Resource):
                 if not course:
                     abort(422)
                 print("Course found: ",course)
-                toDoItem = ToDoItem(text=args['text'],dueDate=args['dueDate'],course=course,user_id=user.id)
+                toDoItem = ToDoList(text=args['text'],dueDate=args['dueDate'],course=course,user_id=user.id)
             else:
-                toDoItem = ToDoItem(text=args['text'],dueDate=args['dueDate'],user_id=user.id)
+                toDoItem = ToDoList(text=args['text'],dueDate=args['dueDate'],user_id=user.id)
             user.todos.append(toDoItem)    
             db.session.add(toDoItem)
             db.session.commit()

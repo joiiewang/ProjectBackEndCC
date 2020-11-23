@@ -48,7 +48,7 @@ class ToDoList(db.Model):
     user_id=db.Column(db.Integer, db.ForeignKey('user.id'))
     course_id = db.Column(db.Integer, db.ForeignKey('course.id'))
     def __repr__(self):
-        return f'<ToDoList {self.toDoItem}>'
+        return f'<ToDoList {self.text}>'
     def to_dict(self):
         return {"id":self.id,"text":self.text,"dueDate":self.dueDate}
 
