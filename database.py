@@ -11,10 +11,12 @@ class User(db.Model):
     notes = db.relationship('Note',backref='user',lazy='dynamic')
 
     points = db.Column(db.Integer, index=True, nullable=False)
+    trees = db.Column(db.Integer, index=True, nullable=False)
+
     def __repr__(self):
         return f'<User {self.username}>'
     def to_dict(self):
-        return {"id":self.id,"username":self.username,"points":self.points}
+        return {"id":self.id,"username":self.username,"points":self.points, "trees":self.trees}
 
 class Course(db.Model):
     id = db.Column(db.Integer, primary_key=True)
