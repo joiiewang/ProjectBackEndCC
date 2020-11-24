@@ -332,6 +332,29 @@ class NoteAPI(Resource):
         except SQLAlchemyError as e:
             abort(422)
 
+class ForestAPI(Resource):
+    decorators = [auth.login_required]
+    def get(self,username):
+        if username != auth.current_user().username:
+            abort(401)
+        user = auth.current_user()
+        return {"points":user.points}
+
+    def put(self,username):
+        parser = reqparse.RequestParser()
+        parser.add_argument('points',type=int,required=True,
+                help='No points provided',location='json')
+        args = parser.parse_args()
+        if username != auth.current_user().username:
+            abort(401)
+        user = auth.current_user()
+        try:
+            user.points=args.points
+            db.session.commit()
+        except SQLAlchemyError as e:
+            abort(422)
+        return {"points":user.points}
+
 def initialize_routes(api):
     api.add_resource(UserListAPI,'/api/v2/users/',endpoint='users')
     api.add_resource(UserAPI,'/api/v2/users/<string:username>/',endpoint='user')
@@ -343,4 +366,5 @@ def initialize_routes(api):
     api.add_resource(ToDoItemAPI,'/api/v2/users/<string:username>/todos/<int:toDoItemid>/',endpoint='toDoItem')
     api.add_resource(NoteListAPI,'/api/v2/users/<string:username>/notes/',endpoint='notes')
     api.add_resource(NoteAPI,'/api/v2/users/<string:username>/notes/<int:noteid>/',endpoint='note')
+    api.add_resource(ForestAPI,'/api/v2/users/<string:username>/forest/',endpoint='forest')
     
