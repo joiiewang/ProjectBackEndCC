@@ -248,6 +248,16 @@ class ToDoItemAPI(Resource):
             abort(404)
         return toDoItem.to_dict()
 
+    def post(self,username,toDoItemid):
+        if username !=auth.current_user().username:
+            abort(401)
+        user = auth.current_user()
+        toDoItem = user.todos.filter_by(id=toDoItemid).first()
+        if not toDoItem:
+            abort(404)
+        toDoItem.completed = not toDoItem.completed
+        return toDoItem.to_dict()
+
     def delete(self,username,toDoItemid):
         if username != auth.current_user().username:
             abort(401)
