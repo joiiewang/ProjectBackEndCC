@@ -256,6 +256,7 @@ class ToDoItemAPI(Resource):
         if not toDoItem:
             abort(404)
         toDoItem.completed = not toDoItem.completed
+        db.session.commit()
         return toDoItem.to_dict()
 
     def delete(self,username,toDoItemid):
