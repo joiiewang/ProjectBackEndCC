@@ -45,12 +45,13 @@ class ToDoList(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     text = db.Column(db.String(100), index=True)
     dueDate = db.Column(db.String(8), index=True)
+    completed = db.Column(db.Boolean, unique=False, default=False)
     user_id=db.Column(db.Integer, db.ForeignKey('user.id'))
     course_id = db.Column(db.Integer, db.ForeignKey('course.id'))
     def __repr__(self):
         return f'<ToDoList {self.text}>'
     def to_dict(self):
-        return {"id":self.id,"text":self.text,"dueDate":self.dueDate}
+        return {"id":self.id,"text":self.text,"dueDate":self.dueDate, "completed":self.completed}
 
 class Note(db.Model):
     id = db.Column(db.Integer, primary_key=True)
