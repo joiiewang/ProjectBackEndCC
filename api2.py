@@ -255,9 +255,19 @@ class ToDoItemAPI(Resource):
         toDoItem = user.todos.filter_by(id=toDoItemid).first()
         if not toDoItem:
             abort(404)
-        toDoItem.completed = not toDoItem.completed
-        db.session.commit()
-        return toDoItem.to_dict()
+        try:
+            if toDoItem.completed and user.points > 0:
+                user.points -= 1
+            else:
+                user.points += 1
+            if user.points >= 12:
+                user.trees += 1
+                user.points = 0
+            toDoItem.completed = not toDoItem.completed
+            db.session.commit()
+            return toDoItem.to_dict()
+        except SQLAlchemyError as e:
+            abort(422)
 
     def delete(self,username,toDoItemid):
         if username != auth.current_user().username:
