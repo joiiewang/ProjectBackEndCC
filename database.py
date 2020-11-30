@@ -46,7 +46,7 @@ class Link(db.Model):
 class ToDoList(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     text = db.Column(db.String(100), index=True)
-    dueDate = db.Column(db.String(8), index=True)
+    dueDate = db.Column(db.String(16), index=True)
     completed = db.Column(db.Boolean, unique=False, default=False)
     user_id=db.Column(db.Integer, db.ForeignKey('user.id'))
     course_id = db.Column(db.Integer, db.ForeignKey('course.id'))
