@@ -8,6 +8,7 @@
 import os, json
 from flask import Flask, request, jsonify, make_response, abort
 from database import db, User, Course
+import psycopg2
 
 DEBUG=True
 
@@ -20,12 +21,13 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
 
-with app.app_context():
-    # Resetting database for now since format changes are expected
-    db.drop_all()
-    # Mockup of database
-    db.create_all()
-    print('Reset database')
+if False:
+    with app.app_context():
+        # Resetting database for now since format changes are expected
+        db.drop_all()
+        # Mockup of database
+        db.create_all()
+        print('Reset database')
 
 #deprecated
 from api import api_v1
