@@ -35,7 +35,7 @@ class UserListAPI(Resource):
 
     def post(self):
         args = self.reqparse.parse_args()
-        user = User(username=args['username'],password_hash=pwd_context.encrypt(args['password']),
+        user = User(username=args['username'],password_hash=pwd_context.hash(args['password']),
                 points=0,trees=0)
         try:
             db.session.add(user)
