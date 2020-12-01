@@ -30,8 +30,8 @@ if False:
         print('Reset database')
 
 #deprecated
-from api import api_v1
-app.register_blueprint(api_v1,url_prefix='/api/v1/')
+#from api import api_v1
+#app.register_blueprint(api_v1,url_prefix='/api/v1/')
 #---
 
 from api2 import initialize_routes
