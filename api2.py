@@ -36,7 +36,7 @@ class UserListAPI(Resource):
     def post(self):
         args = self.reqparse.parse_args()
         user = User(username=args['username'],password_hash=pwd_context.hash(args['password']),
-                points=0,trees=0)
+                points=0)
         try:
             db.session.add(user)
             db.session.commit()
@@ -256,13 +256,10 @@ class ToDoItemAPI(Resource):
         if not toDoItem:
             abort(404)
         try:
-            if toDoItem.completed and user.points > 0:
+            if toDoItem.completed:
                 user.points -= 1
             else:
                 user.points += 1
-            if user.points >= 12:
-                user.trees += 1
-                user.points = 0
             toDoItem.completed = not toDoItem.completed
             db.session.commit()
             return toDoItem.to_dict()
@@ -359,25 +356,22 @@ class ForestAPI(Resource):
         if username != auth.current_user().username:
             abort(401)
         user = auth.current_user()
-        return {"points":user.points,"trees":user.trees}
+        return {"points":user.points}
 
     def put(self,username):
         parser = reqparse.RequestParser()
         parser.add_argument('points',type=int,required=True,
                 help='No points provided',location='json')
-        parser.add_argument('trees',type=int,required=True,
-                help='No trees provided',location='json')
         args = parser.parse_args()
         if username != auth.current_user().username:
             abort(401)
         user = auth.current_user()
         try:
             user.points=args.points
-            user.trees=args.trees
             db.session.commit()
         except SQLAlchemyError as e:
             abort(422)
-        return {"points":user.points,"trees":user.trees}
+        return {"points":user.points}
 
 def initialize_routes(api):
     api.add_resource(UserListAPI,'/api/v2/users/',endpoint='users')
