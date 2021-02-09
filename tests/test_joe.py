@@ -11,7 +11,7 @@ def test_joe(app,client):
     res = client.get('/api/v2/users/')
     assert res.status_code == 200 # success
     assert (json.loads(res.get_data(as_text=True)) ==
-    [{'id':1,'points':0,'trees':0,'username':'joe'}])
+    [{'id':1,'points':0,'username':'joe'}])
 
     #Test invalid credentials
     credentials = b64encode(b"joe:monke").decode('utf-8')
@@ -27,7 +27,7 @@ def test_joe(app,client):
     res = client.get('/api/v2/users/joe/',headers=auth_headers)
     assert res.status_code == 200
     assert (json.loads(res.get_data(as_text=True)) ==
-    {'id':1,'points':0,'trees':0,'username':'joe'})
+    {'id':1,'points':0,'username':'joe'})
 
     #List courses
     res = client.get('/api/v2/users/joe/courses/',headers=auth_headers)
